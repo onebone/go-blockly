@@ -45,7 +45,7 @@ type Statement struct {
 
 func NewWorkspace(xml io.Reader) Workspace {
 	if xml == nil {
-		panic("Xml cannot nil")
+		panic("Xml cannot be nil")
 	}
 
 	return Workspace{
@@ -93,7 +93,7 @@ func (w *Workspace) parseStatement(dec *xml.Decoder, ptr *Block) error{
 			}
 			case "field": {
 				var field struct {
-					Name	string `xml:"name,attr"`
+					Name	string	`xml:"name,attr"`
 					Value	string	`xml:",chardata"`
 				}
 
