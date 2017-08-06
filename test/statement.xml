@@ -1,0 +1,15 @@
+<xml xmlns="http://www.w3.org/1999/xhtml">
+	<variables></variables>
+	<block type="b1">
+	    <field name="hello">HI</field>
+		<next>
+			<block type="b2">
+				<statement name="DO1">
+					<block type="b3">
+						<field name="f2">AAA</field>
+					</block>
+				</statement>
+			</block>
+		</next>
+	</block>
+</xml>
