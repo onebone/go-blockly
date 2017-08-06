@@ -21,4 +21,7 @@
             </block>
         </next>
     </block>
+    <block type="b5">
+        <field name="f5">Hello World!</field>
+    </block>
 </xml>

@@ -3,6 +3,7 @@ package blockly
 import (
 	"testing"
 	"os"
+	"fmt"
 )
 
 var simple = []*Block{
@@ -32,6 +33,7 @@ func TestSimple(t *testing.T){
 		t.Error("Unexpected output")
 	}*/
 	printWorkspace(w)
+	fmt.Println("====== END ======")
 }
 
 func TestStatement(t *testing.T){
@@ -51,6 +53,7 @@ func TestStatement(t *testing.T){
 		t.Error("Unexpected output")
 	}*/
 	printWorkspace(w)
+	fmt.Println("====== END ======")
 }
 
 func TestValue(t *testing.T){
@@ -70,4 +73,5 @@ func TestValue(t *testing.T){
 		t.Error("Unexpected output")
 	}*/
 	printWorkspace(w)
+	fmt.Println("====== END ======")
 }

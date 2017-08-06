@@ -63,13 +63,28 @@ func NewWorkspace(xml io.Reader) Workspace {
 func (w *Workspace) Parse() error {
 	dec := xml.NewDecoder(w.ExportedXml)
 
-	block := NewBlock()
-	w.Root = append(w.Root, &block) // Defining initial root block
+	for {
+		t, err := dec.Token()
+		if t == nil {
+			break
+		}else if err != nil {
+			return err
+		}
 
-	if err := w.parseStatement(dec, &block); err != nil {
-		return err
+		switch t := t.(type) {
+		case xml.StartElement:
+			if t.Name.Local ==  "block" {
+				block := NewBlock()
+				block.Type = getAttr(t, "type")
+				w.Root = append(w.Root, &block)
+
+				if err := w.parseStatement(dec, &block); err != nil {
+					return err
+				}
+			}
+		}
 	}
-	// TODO: multiple roots
+
 	return nil
 }
 
@@ -86,9 +101,7 @@ func (w *Workspace) parseStatement(dec *xml.Decoder, ptr *Block) error{
 		case xml.StartElement:
 			switch t.Name.Local {
 			case "block": {
-				blType := getAttr(t, "type")
-
-				ptr.Type = blType
+				ptr.Type = getAttr(t, "type")
 			}
 			case "next": {
 				b := NewBlock()
@@ -152,6 +165,10 @@ func (w *Workspace) parseStatement(dec *xml.Decoder, ptr *Block) error{
 			switch t.Name.Local {
 			case "next": {
 				ptr = ptr.PreviousConnection
+
+				if ptr.PreviousConnection == nil {
+					return nil
+				}
 			}
 			case "statement", "value": {
 				return nil
