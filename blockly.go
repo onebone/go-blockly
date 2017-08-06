@@ -21,10 +21,16 @@ type Workspace struct {
 	Root			[]*Block
 }
 
+type Value struct {
+	Name			string
+	Connection		*Block
+}
+
 type Input struct {
 	Type			int
 	Name			string
-	Value			string
+	Text			string
+	Value			*Value
 	Statement		*Statement
 }
 
@@ -104,7 +110,7 @@ func (w *Workspace) parseStatement(dec *xml.Decoder, ptr *Block) error{
 				ptr.Inputs = append(ptr.Inputs, &Input{
 					Type: InputField,
 					Name: field.Name,
-					Value: field.Value,
+					Text: field.Value,
 				})
 			}
 			case "statement": {
@@ -124,13 +130,30 @@ func (w *Workspace) parseStatement(dec *xml.Decoder, ptr *Block) error{
 					return err
 				}
 			}
+			case "value": {
+				block := NewBlock()
+
+				name := getAttr(t, "name")
+				input := &Input {
+					Type: InputValue,
+					Name: name,
+					Value: &Value {
+						Name: name,
+						Connection: &block,
+					},
+				}
+				ptr.Inputs = append(ptr.Inputs, input)
+				if err := w.parseStatement(dec, &block); err != nil {
+					return err
+				}
+			}
 			}
 		case xml.EndElement:
 			switch t.Name.Local {
 			case "next": {
 				ptr = ptr.PreviousConnection
 			}
-			case "statement": {
+			case "statement", "value": {
 				return nil
 			}
 			}
@@ -157,25 +180,9 @@ func getAttr(t xml.StartElement, key string) string{
 
 func printWorkspace(w Workspace){
 	for _, root := range w.Root {
-		depth := 0
-
 		ptr := root
 
-		for ptr != nil {
-			fmt.Println(strings.Repeat("\t", depth) + "<block type=\"" + ptr.Type + "\">")
-
-			for _, input := range ptr.Inputs {
-				if input.Type == InputField {
-					fmt.Println(strings.Repeat("\t", depth + 1) + "<field name=\"" + input.Name + "\">" + input.Value + "</field>")
-				}else if input.Type == InputStatement {
-					fmt.Println(strings.Repeat("\t", depth + 1) + "<statement name=\"" + input.Name + "\">")
-					printStatement(input.Statement.Connection, depth + 1)
-				}
-			}
-
-			ptr = ptr.NextConnection
-			depth++
-		}
+		printStatement(ptr, 0)
 	}
 }
 
@@ -187,15 +194,17 @@ func printStatement(block *Block, depth int){
 
 		for _, input := range ptr.Inputs {
 			if input.Type == InputField {
-				fmt.Println(strings.Repeat("\t", depth + 1) + "<field name=\"" + input.Name + "\">" + input.Value + "</field>")
+				fmt.Println(strings.Repeat("\t", depth + 1) + "<field name=\"" + input.Name + "\">" + input.Text + "</field>")
 			}else if input.Type == InputStatement {
 				fmt.Println(strings.Repeat("\t", depth + 1) + "<statement name=\"" + input.Statement.Name + "\">")
-				printStatement(input.Statement.Connection, depth + 1)
+				printStatement(input.Statement.Connection, depth + 2)
+			}else if input.Type == InputValue {
+				fmt.Println(strings.Repeat("\t", depth + 1) + "<value name=\"" + input.Value.Name + "\">")
+				printStatement(input.Value.Connection, depth + 2)
 			}
 		}
 
 		ptr = ptr.NextConnection
 		depth++
-
 	}
 }

@@ -1,0 +1,24 @@
+<xml xmlns="http://www.w3.org/1999/xhtml">
+    <block type="b1">
+        <next>
+            <block type="controls_if">
+                <value name="IF0">
+                    <block type="b2">
+                        <field name="BOOL">TRUE</field>
+                    </block>
+                </value>
+                <statement name="DO0">
+                    <block type="b3">
+                        <field name="f2">AAAA</field>
+                        <field name="f3">BBBB</field>
+                        <value name="v1">
+                            <block type="b4">
+                                <field name="f4">안녕하심시오</field>
+                            </block>
+                        </value>
+                    </block>
+                </statement>
+            </block>
+        </next>
+    </block>
+</xml>
