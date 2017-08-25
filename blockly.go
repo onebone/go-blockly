@@ -35,13 +35,14 @@ type Input struct {
 }
 
 type Block struct {
-	Type			string
+	Type			    string
+	Root                bool
 
 	PreviousConnection	*Block
 	NextConnection		*Block
 	OutputConnection	*Block
 
-	Inputs			[]*Input
+	Inputs			    []*Input
 }
 
 type Statement struct {
@@ -75,6 +76,7 @@ func (w *Workspace) Parse() error {
 		case xml.StartElement:
 			if t.Name.Local ==  "block" {
 				block := NewBlock()
+				block.Root = true
 				block.Type = getAttr(t, "type")
 				w.Root = append(w.Root, &block)
 
@@ -169,7 +171,7 @@ func (w *Workspace) parseStatement(dec *xml.Decoder, ptr *Block) error{
 				case "next": {
 					ptr = ptr.PreviousConnection
 
-					if ptr == nil {
+					if ptr.Root {
 						return nil
 					}
 				}
