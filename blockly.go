@@ -100,79 +100,82 @@ func (w *Workspace) parseStatement(dec *xml.Decoder, ptr *Block) error{
 		switch t := t.(type) {
 		case xml.StartElement:
 			switch t.Name.Local {
-			case "block": {
-				ptr.Type = getAttr(t, "type")
-			}
-			case "next": {
-				b := NewBlock()
-
-				b.PreviousConnection = ptr
-				ptr.NextConnection = &b
-				ptr = ptr.NextConnection
-			}
-			case "field": {
-				var field struct {
-					Name	string	`xml:"name,attr"`
-					Value	string	`xml:",chardata"`
+				case "block": {
+					ptr.Type = getAttr(t, "type")
 				}
+				case "next": {
+					b := NewBlock()
 
-				if err := dec.DecodeElement(&field, &t); err != nil {
-					return err
+					b.PreviousConnection = ptr
+					ptr.NextConnection = &b
+					ptr = ptr.NextConnection
 				}
+				case "field": {
+					var field struct {
+						Name	string	`xml:"name,attr"`
+						Value	string	`xml:",chardata"`
+					}
 
-				ptr.Inputs = append(ptr.Inputs, &Input{
-					Type: InputField,
-					Name: field.Name,
-					Text: field.Value,
-				})
-			}
-			case "statement": {
-				block := NewBlock()
+					if err := dec.DecodeElement(&field, &t); err != nil {
+						return err
+					}
 
-				name := getAttr(t, "name")
-				input := &Input {
-					Type: InputStatement,
-					Name: name,
-					Statement: &Statement {
+					ptr.Inputs = append(ptr.Inputs, &Input{
+						Type: InputField,
+						Name: field.Name,
+						Text: field.Value,
+					})
+				}
+				case "statement": {
+					block := NewBlock()
+
+					name := getAttr(t, "name")
+					input := &Input {
+						Type: InputStatement,
 						Name: name,
-						Connection: &block,
-					},
-				}
-				ptr.Inputs = append(ptr.Inputs, input)
-				if err := w.parseStatement(dec, &block); err != nil {
-					return err
-				}
-			}
-			case "value": {
-				block := NewBlock()
+						Statement: &Statement {
+							Name: name,
+							Connection: &block,
+						},
+					}
 
-				name := getAttr(t, "name")
-				input := &Input {
-					Type: InputValue,
-					Name: name,
-					Value: &Value {
+					if err := w.parseStatement(dec, &block); err != nil {
+						return err
+					}
+
+					ptr.Inputs = append(ptr.Inputs, input)
+				}
+				case "value": {
+					block := NewBlock()
+
+					name := getAttr(t, "name")
+					input := &Input {
+						Type: InputValue,
 						Name: name,
-						Connection: &block,
-					},
+						Value: &Value {
+							Name: name,
+							Connection: &block,
+						},
+					}
+
+					if err := w.parseStatement(dec, &block); err != nil {
+						return err
+					}
+					ptr.Inputs = append(ptr.Inputs, input)
 				}
-				ptr.Inputs = append(ptr.Inputs, input)
-				if err := w.parseStatement(dec, &block); err != nil {
-					return err
-				}
-			}
 			}
 		case xml.EndElement:
 			switch t.Name.Local {
-			case "next": {
-				ptr = ptr.PreviousConnection
+				case "next": {
+					ptr = ptr.PreviousConnection
 
-				if ptr.PreviousConnection == nil {
+					if ptr == nil {
+						return nil
+					}
+				}
+				case "statement", "value": {
 					return nil
 				}
-			}
-			case "statement", "value": {
-				return nil
-			}
 			}
 		}
 	}
